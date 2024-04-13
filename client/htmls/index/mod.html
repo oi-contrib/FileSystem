@@ -1,0 +1,152 @@
+<link rel="stylesheet" href="./htmls/index/mod.css">
+<div ng-init='initMethod()' class='index-view' ng-click="doClickView($event)" ui-rightmenu="doRightmenu($event)"
+    ui-drag-upload="uploadFile($files)">
+    <div class="platform">
+        <h2>
+            文件管理系统
+        </h2>
+        <div class="right">
+            <ul>
+                <li class="label">
+                    <label for="selectFile">上传文件</label>
+                </li>
+                <li class="label">
+                    <label for="selectFolder">上传文件夹</label>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="filelist">
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        名称
+                    </th>
+                    <th>
+                        修改日期
+                    </th>
+                    <th>
+                        类型
+                    </th>
+                    <th>
+                        大小
+                    </th>
+                    <th>
+                        操作
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-dblclick="openBtn()" class="folder">
+                    <th class="name">..</th>
+                    <th>-</th>
+                    <th>
+                        文件夹
+                    </th>
+                    <th>-</th>
+                    <th>-</th>
+                </tr>
+                <tr ng-repeat="item in fileList" draggable='true' ui-dragstart="doDragstart($event,item)"
+                    ng-dblclick="openBtn(item)" ng-click="doSelect($index)"
+                    filetype="{{item.isDirectory?'folder':'file'}}" name="{{item.name}}"
+                    class="{{(item.isDirectory?'folder':'file')+(isZipFile(item.name)?' zip':'')+(selected[$index]?' active':'')}}">
+                    <th class="name">{{item.name}}</th>
+                    <th>{{item.mtime}}</th>
+                    <th>{{item.isDirectory?'文件夹':item.type}}</th>
+                    <th>{{item.size||"-"}}</th>
+                    <th>-</th>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 底部操作按钮 -->
+    <div class="mult-bottom-btns">
+        <button class="button" ng-click="goHome()">回到首页</button>
+        <button class="button" ng-click="doFresh()">刷新</button>
+        <label class="button" for="selectFile">上传文件</label>
+        <label class="button" for="selectFolder">上传文件夹</label>
+        <button class="button" ng-click="doPaste()">粘贴</button>
+        <button class="button" ng-click="doExit()">退出</button>
+    </div>
+
+    <!-- 辅助元素 -->
+    <div class="noshow">
+        <input type="file" id="selectFile" ui-change="doUploadFile($event)" multiple="true" />
+        <input type="file" id="selectFolder" ui-change="doUploadFile($event)" multiple="true" webkitdirectory
+            mozdirectory odirectory />
+    </div>
+
+    <!-- 右键视图 -->
+    <div id="rightMenu" class="rightMenu" ng-style="{
+        'display':rightmenu.display
+    }">
+
+        <!-- 空白区域 -->
+        <ul ng-if="!rightmenu.type">
+            <li ng-click="doFresh()">
+                刷新
+            </li>
+            <li>
+                <label for="selectFile">上传文件</label>
+            </li>
+            <li>
+                <label for="selectFolder">上传文件夹</label>
+            </li>
+            <li ng-click="doPaste()">
+                粘贴
+            </li>
+            <li ng-click="goHome()">
+                回到首页
+            </li>
+        </ul>
+
+        <!-- 条目区域 -->
+        <ul ng-if="rightmenu.type">
+            <li ng-click="doCopy()">
+                复制
+            </li>
+            <li ng-click="doCut()">
+                剪切
+            </li>
+            <li ng-click="doDownload()">
+                下载到本地
+            </li>
+            <li ng-click="doZip()" ng-if="!rightmenu.isZip &&  rightmenu.type=='folder'">
+                压缩文件夹
+            </li>
+            <li ng-click="doUnzip()" ng-if="rightmenu.isZip">
+                解压
+            </li>
+            <li class="line"></li>
+            <li ng-click="doDelete()">
+                删除
+            </li>
+        </ul>
+    </div>
+
+    <!-- 进度提示条 -->
+    <div class="process-view" ng-style="{'display':process.display}">
+        <div class="content">
+            <div class="value">
+                <span class="line" ng-style="{'border-left-width':300 * process.value + 'px'}"></span>
+                <span class="num">
+                    {{(process.value * 100).toFixed(2) + "%"}}
+                </span>
+            </div>
+            <div class="info">
+                {{process.info}}
+            </div>
+        </div>
+    </div>
+
+    <!-- 统一弹框 -->
+    <div ng-if="showFileType" class="showfile-view">
+        <header>
+            <h2>打开文件</h2>
+            <div class="close" title="关闭" ng-click="hiddenShowfile()"></div>
+            <video ng-if="videoSrc" class="content" controls src="{{videoSrc}}" autoplay></video>
+        </header>
+    </div>
+</div>

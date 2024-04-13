@@ -1,0 +1,27 @@
+<link rel="stylesheet" href="./htmls/login/mod.css">
+<div ng-init='initMethod()' class='login-view'>
+    <div class="content">
+        <div class="image">
+            <h1>
+                文件管理系统
+            </h1>
+            <div class="version">
+                {{"系统版本：v"|versionFlt}}
+            </div>
+        </div>
+        <div class="input">
+            <h2>
+                登录
+                <div class="registry">
+                    没有帐号？ <span class="link" ng-click="goto('registry')">点此注册</span>
+                </div>
+            </h2>
+            <input type="text" ng-model="params.username" placeholder="请输入用户名">
+            <input type="password" ng-model="params.password" placeholder="请输入密码" autocomplete="new-password">
+            <button ng-click="doLogin()">登录</button>
+            <div class="forget">
+                <span class="link" ng-click="goto('forget')">已有帐号，忘记密码？</span>
+            </div>
+        </div>
+    </div>
+</div>

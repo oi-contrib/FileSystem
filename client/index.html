@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-cn" ng-app="startApp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" href="./images/logo.png">
+    <title>🔥文件管理系统 ✨☁️📁✨ 支持：文件或文件夹的上传、下载、ZIP文件压缩与解压、在线查看等</title>
+    <style>
+        body {
+            --block-border-radius: 10px;
+        }
+    </style>
+    <script src="./libs/system.info.js"></script>
+    <!-- <script src="https://unpkg.com/zdebug.js"></script> -->
+    <script>
+        // Zdebug();
+    </script>
+    <style>
+        .fork {
+            width: 160px;
+            line-height: 30px;
+            position: fixed;
+            background-color: red;
+            text-align: center;
+            color: white;
+            outline: 2px dashed red;
+            width: 200px;
+            transform: rotate(-45deg);
+            right: -40px;
+            bottom: 44px;
+        }
+    </style>
+    <script>
+        if (localStorage.getItem("isLogin") == 'yes') {
+            sessionStorage.setItem("isLogin", localStorage.getItem("isLogin"));
+        }
+    </script>
+</head>
+
+<body>
+    <div ui-view></div>
+    <script src="./libs/preload.js"></script>
+    <a href="https://github.com/zxl20070701/FileSystem" target="_blank" class="fork">
+        Fork me on Github
+    </a>
+</body>
+
+</html>

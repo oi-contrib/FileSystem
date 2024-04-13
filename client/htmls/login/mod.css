@@ -1,0 +1,103 @@
+.login-view {
+    background-color: #dee6fe;
+    text-align: center;
+    height: 100vh;
+    padding-top: calc(50vh - 250px);
+    overflow: auto;
+}
+
+.login-view>.content {
+    font-size: 0;
+    white-space: nowrap;
+}
+
+.login-view>.content>div {
+    height: 500px;
+    display: inline-block;
+    font-size: 16px;
+    white-space: normal;
+    vertical-align: top;
+}
+
+.login-view>.content>.image {
+    background-image: url("../../images/view.jpeg");
+    width: 600px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-color: #f6f6f6;
+    background-position: center;
+    position: relative;
+    margin-right: 20px;
+    border-radius: var(--block-border-radius);
+}
+
+.login-view>.content>.image>h1 {
+    margin-top: 20px;
+    font-family: serif;
+    color: #848181;
+    font-weight: 200;
+}
+
+.login-view>.content>.image>.version {
+    position: absolute;
+    bottom: 30px;
+    right: 50px;
+    color: #607D8B;
+    font-family: monospace;
+    font-weight: 400;
+}
+
+.login-view>.content>.input {
+    background-color: white;
+    width: 400px;
+    position: relative;
+    border-radius: var(--block-border-radius);
+}
+
+.login-view>.content>.input>h2 {
+    line-height: 100px;
+    text-align: left;
+    padding: 0 20px;
+    position: relative;
+}
+
+.login-view>.content>.input>h2>.registry {
+    position: absolute;
+    right: 20px;
+    bottom: 0;
+    font-size: 12px;
+}
+
+.login-view>.content>.input>input {
+    height: 40px;
+    padding-left: 10px;
+    width: 90%;
+    border: none;
+    box-sizing: border-box;
+    background-color: #f4f8ff;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    outline: none;
+    border: 1px solid rgb(196 203 208);
+}
+
+.login-view>.content>.input>button {
+    color: #fff;
+    background-color: #2d6efb;
+    display: inline-block;
+    width: 90%;
+    height: 40px;
+    border-radius: 4px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.login-view>.content>.input>input:focus,
+.login-view>.content>.input>button:focus {
+    outline: 1px solid #807e7e;
+}
+
+.login-view>.content>.input>.forget {
+    margin-top: 20px;
+}
