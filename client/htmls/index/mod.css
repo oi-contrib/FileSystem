@@ -47,14 +47,14 @@ body {
 /* 内容列表 */
 .filelist {
     position: fixed;
-    left: 20px;
-    top: 90px;
+    left: 50px;
+    top: 70px;
     outline: 1px solid #9E9E9E;
-    width: calc(100vw - 40px);
-    height: calc(100vh - 160px);
+    width: calc(100vw - 100px);
+    height: calc(100% - 140px);
     overflow: auto;
-    padding: 20px 50px;
-    border-radius: 5px;
+    padding: 20px;
+    border-radius: 0 0 5px 5px;
     background-color: #fcfcfc;
 }
 
@@ -98,6 +98,9 @@ body {
     background-size: auto 90%;
     padding-left: 30px;
     color: #000000;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .filelist>table>tbody>tr>th.name>span {
@@ -122,7 +125,7 @@ body {
 
 /* 底部按钮 */
 .mult-bottom-btns {
-    width: 100vw;
+    width: 100%;
     height: 70px;
     position: fixed;
     left: 0;
@@ -145,6 +148,12 @@ body {
     outline: 1px solid #9E9E9E;
     cursor: pointer;
     display: inline-block;
+}
+
+.mult-bottom-btns>.button.exit {
+    background-color: red;
+    color: white;
+    outline: none;
 }
 
 .mult-bottom-btns>.button:hover {
@@ -244,24 +253,38 @@ body {
 /* 显示文件 */
 .showfile-view {
     position: fixed;
-    left: 50px;
-    bottom: 50px;
-    width: 400px;
-    height: 300px;
+    left: 20px;
+    top: 20px;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
     background-color: #ffffff;
     box-shadow: 0 0 5px 3px #9E9E9E;
+    text-align: left;
+    z-index: 2;
+    border-radius: 10px;
+}
+
+.showfile-mask {
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.4);
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
 }
 
 .showfile-view>header>h2 {
     background-size: auto 70%;
-    background-position: 5px center;
+    background-position: 10px center;
     background-repeat: no-repeat;
-    line-height: 30px;
-    font-size: 14px;
+    line-height: 40px;
+    font-size: 16px;
     font-family: cursive;
-    padding-left: 35px;
+    padding-left: 50px;
     background-color: #b0c9dd;
     background-image: url("../../images/logo.png");
+    border-radius: 10px 10px 0 0;
 }
 
 .showfile-view>header>.close {
@@ -270,12 +293,75 @@ body {
     background-image: url("../../images/close-btn.png");
     font-size: 0;
     position: absolute;
-    right: 10px;
+    right: 30px;
     top: 0;
     cursor: pointer;
 }
 
-.showfile-view>header>.content {
+.showfile-view>.content {
     width: 100%;
-    height: 270px;
+    height: calc(100% - 40px);
+}
+
+.showfile-view>.content.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.showfile-view>.content.plain {
+    margin: 0;
+    padding: 10px;
+    overflow: auto;
+}
+
+.showfile-view>.content.plain>pre {
+    user-select: text;
+    white-space: break-spaces;
+}
+
+.showfile-view>.content.img>img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* 无文件 */
+.filelist>.blank {
+    text-align: center;
+}
+
+.filelist>.blank>.title {
+    text-align: center;
+    font-weight: 700;
+    color: #1a1a1a;
+    font-size: 36px;
+    line-height: 48px;
+    padding-top: 50px;
+}
+
+.filelist>.blank>.tips {
+    text-align: center;
+    line-height: 30px;
+    font-size: 22px;
+    color: #1a1a1a;
+    font-weight: 300;
+    margin: 10px 0;
+}
+
+.filelist>.blank>.file {
+    line-height: 50px;
+    display: inline-block;
+    border: 1px solid gray;
+    background-image: url("../../images/addFile.svg");
+    background-repeat: no-repeat;
+    background-position: 5px center;
+    background-size: auto 70%;
+    padding-left: 40px;
+    padding-right: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.filelist>.blank>.file:hover {
+    text-decoration: underline;
 }

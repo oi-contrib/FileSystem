@@ -1,4 +1,4 @@
-# [File System](https://github.com/zxl20070701/FileSystem)
+# [File System](https://github.com/oi-contrib/FileSystem)
 🔥文件管理系统 ✨☁️📁✨ 支持：文件或文件夹的上传、下载、ZIP文件压缩与解压、在线查看等
 
 ## 如何开发

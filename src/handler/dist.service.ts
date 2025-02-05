@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { formatByte, formatTime } from '../tool/format'
 
 const devby = require('devby')
 const { join } = require("path")
@@ -33,8 +34,8 @@ export class DistService {
                 resultData.push({
                     name: subFiles[index],
                     isDirectory: isDir,
-                    mtime: statObj.mtime,
-                    size: isDir ? "" : (statObj.size + "字节"),
+                    mtime: formatTime(statObj.mtime),
+                    size: isDir ? "" : formatByte(statObj.size),
                     type: devby.mimeTypes[dotName] || "text/plain"
                 })
 

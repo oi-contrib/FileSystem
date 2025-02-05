@@ -1,6 +1,6 @@
 {
   "name": "file-system",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "🔥文件管理系统 ✨☁️📁✨ 支持：文件或文件夹的上传、下载、ZIP文件压缩与解压、在线查看等",
   "scripts": {
     "postinstall": "devby --copy ./node_modules/vislite/lib/index.umd.js ./client/libs/min/vislite.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zxl20070701/FileSystem.git"
+    "url": "git+https://github.com/oi-contrib/FileSystem.git"
   },
   "keywords": [
     "FileSystem",
@@ -23,20 +23,20 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/zxl20070701/FileSystem/issues"
+    "url": "https://github.com/oi-contrib/FileSystem/issues"
   },
-  "homepage": "https://github.com/zxl20070701/FileSystem",
+  "homepage": "https://github.com/oi-contrib/FileSystem",
   "dependencies": {
     "@nestjs/common": "^10.3.3",
     "@nestjs/core": "^10.3.3",
     "@nestjs/platform-express": "^10.3.3",
     "@nestjs/serve-static": "^4.0.1",
     "compressing": "^1.10.0",
-    "devby": "^0.6.1-alpha.0",
+    "devby": "^0.7.0",
     "nodemailer": "^6.9.13",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "vislite": "^1.0.0-next.5"
+    "vislite": "^1.2.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.2",

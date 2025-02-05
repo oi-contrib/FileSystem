@@ -1,5 +1,5 @@
 /*!
-* VISLite JavaScript Library v1.0.0-next.5
+* VISLite JavaScript Library v1.2.0
 * git+https://github.com/oi-contrib/VISLite.git
 */
 (function (global, factory) {
@@ -257,9 +257,9 @@
         ];
     }
 
-    function getLoopColors (num, alpha) {
+    function getLoopColors (num, alpha, colorsFactory) {
         if (alpha === void 0) { alpha = 1; }
-        var colorList = [
+        var colorList = colorsFactory ? colorsFactory(alpha) : [
             'rgba(84,112,198,' + alpha + ")", 'rgba(145,204,117,' + alpha + ")",
             'rgba(250,200,88,' + alpha + ")", 'rgba(238,102,102,' + alpha + ")",
             'rgba(115,192,222,' + alpha + ")", 'rgba(59,162,114,' + alpha + ")",
@@ -293,13 +293,27 @@
         return colors;
     }
 
+    //当前正在运动的动画的tick函数堆栈
     var $timers = [];
+    //唯一定时器的定时间隔
     var $interval = 13;
+    //定时器ID
     var $timerId;
-    function animation (doback, duration, callback) {
-        if (duration === void 0) { duration = 400; }
-        if (callback === void 0) { callback = function () { }; }
+
+    /**
+     * 动画轮播
+     * @param {function} doback 轮询函数，有一个形参deep，0-1，表示执行进度
+     * @param {number} duration 动画时长，可选
+     * @param {function} callback 动画结束回调，可选，有一个形参deep，0-1，表示执行进度
+     *
+     * @returns {function} 返回一个函数，调用该函数，可以提前结束动画
+     */
+    function animation(doback, duration, callback) {
+        if (arguments.length < 2) duration = 400;
+        if (arguments.length < 3) callback = function () { };
+
         var clock = {
+            //把tick函数推入堆栈
             "timer": function (tick, duration, callback) {
                 if (!tick) {
                     throw new Error('Tick is required!');
@@ -315,29 +329,37 @@
                 clock.start();
                 return id;
             },
+
+            //开启唯一的定时器timerId
             "start": function () {
                 if (!$timerId) {
                     $timerId = setInterval(clock.tick, $interval);
                 }
             },
+
+            //被定时器调用，遍历timers堆栈
             "tick": function () {
-                var createTime, flag, tick, callback, timer, duration, passTime;
-                var timers = $timers;
+                var createTime, flag, tick, callback, timer, duration, passTime, timers = $timers;
+
                 $timers = [];
                 $timers.length = 0;
+
                 for (flag = 0; flag < timers.length; flag++) {
+                    //初始化数据
                     timer = timers[flag];
                     createTime = timer.createTime;
                     tick = timer.tick;
                     duration = timer.duration;
                     callback = timer.callback;
+
+                    //执行
                     passTime = (+new Date().valueOf() - createTime.valueOf()) / duration;
                     passTime = passTime > 1 ? 1 : passTime;
                     tick(passTime);
                     if (passTime < 1 && timer.id) {
+                        //动画没有结束再添加
                         $timers.push(timer);
-                    }
-                    else {
+                    } else {
                         callback(passTime);
                     }
                 }
@@ -345,6 +367,8 @@
                     clock.stop();
                 }
             },
+
+            //停止定时器，重置timerId=null
             "stop": function () {
                 if ($timerId) {
                     clearInterval($timerId);
@@ -352,9 +376,14 @@
                 }
             }
         };
+
         var id = clock.timer(function (deep) {
+            //其中deep为0-1，表示改变的程度
             doback(deep);
         }, duration, callback);
+
+        // 返回一个函数
+        // 用于在动画结束前结束动画
         return function () {
             var i;
             for (i in $timers) {
@@ -364,6 +393,7 @@
                 }
             }
         };
+
     }
 
     function ruler (maxValue, minValue, num, option) {
@@ -535,6 +565,17 @@
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     }
 
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
+
     typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
         var e = new Error(message);
         return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
@@ -562,7 +603,6 @@
     function full(el, config) {
         _setAttribute(el, "stroke", config.strokeStyle);
         _setAttribute(el, "fill", config.fillStyle);
-        _setAttribute(el, "stroke-dasharray", config.lineDash.join(','));
     }
     function fill(el, config) {
         _setAttribute(el, "fill", config.fillStyle);
@@ -570,7 +610,6 @@
     function stroke(el, config) {
         _setAttribute(el, "stroke", config.strokeStyle);
         _setAttribute(el, "fill", "none");
-        _setAttribute(el, "stroke-dasharray", config.lineDash.join(','));
     }
 
     function setStyle (el, styles) {
@@ -651,10 +690,14 @@
         setAttribute(el, "cy", cy);
         setAttribute(el, "r", r);
     };
-    var initPath = function (el, path) {
+    var initPath = function (el, path, config) {
         if (el.nodeName.toLowerCase() !== "path")
             throw new Error("Need a <path> !");
         setAttribute(el, "d", path);
+        setAttribute(el, "stroke-dasharray", config.lineDash.join(','));
+        setAttribute(el, "stroke-width", config.lineWidth + "");
+        setAttribute(el, "stroke-linecap", config.lineCap + "");
+        setAttribute(el, "stroke-linejoin", config.lineJoin + "");
     };
     var initRect$1 = function (el, x, y, width, height) {
         if (el.nodeName.toLowerCase() !== "rect")
@@ -755,21 +798,27 @@
         return enhanceGradient$1(radialGradient, gradientId);
     };
 
+    function defaultFactory$1 () {
+        return {
+            fillStyle: "#000",
+            strokeStyle: "#000",
+            textAlign: "left",
+            textBaseline: "middle",
+            "fontSize": 16,
+            "fontFamily": "sans-serif",
+            "arcStartCap": "butt",
+            "arcEndCap": "butt",
+            lineDash: [],
+            lineWidth: 1,
+            lineCap: "butt",
+            lineJoin: "miter"
+        };
+    }
+
     var SVG$1 = (function () {
         function SVG(svg) {
             this.name = "SVG";
-            this.__config = {
-                fillStyle: "#000",
-                strokeStyle: "#000",
-                lineWidth: 1,
-                textAlign: "left",
-                textBaseline: "middle",
-                "fontSize": 16,
-                "fontFamily": "sans-serif",
-                "arcStartCap": "butt",
-                "arcEndCap": "butt",
-                lineDash: [],
-            };
+            this.__config = defaultFactory$1();
             this.__path = "";
             this.__currentPosition = [];
             this.__svg = svg;
@@ -783,6 +832,10 @@
                     this.__config[key] = params[key];
                 }
             }
+            return this;
+        };
+        SVG.prototype.reset = function () {
+            this.config(defaultFactory$1());
             return this;
         };
         SVG.prototype.useEl = function (el) {
@@ -923,17 +976,17 @@
             return this;
         };
         SVG.prototype.fill = function () {
-            initPath(this.__useEl, this.__path);
+            initPath(this.__useEl, this.__path, this.__config);
             fill(this.__useEl, this.__config);
             return this;
         };
         SVG.prototype.stroke = function () {
-            initPath(this.__useEl, this.__path);
+            initPath(this.__useEl, this.__path, this.__config);
             stroke(this.__useEl, this.__config);
             return this;
         };
         SVG.prototype.full = function () {
-            initPath(this.__useEl, this.__path);
+            initPath(this.__useEl, this.__path, this.__config);
             full(this.__useEl, this.__config);
             return this;
         };
@@ -1085,30 +1138,44 @@
         return lineNumber * height;
     }
 
+    function defaultFactory (type) {
+        var special = {
+            "fontSize": 16,
+            "fontFamily": "sans-serif",
+            "fontWeight": 400,
+            "fontStyle": "normal",
+            "arcStartCap": 'butt',
+            "arcEndCap": 'butt'
+        };
+        var init = {
+            "fillStyle": 'black',
+            "strokeStyle": 'black',
+            "lineWidth": 1,
+            "lineCap": "butt",
+            "lineJoin": "miter",
+            "lineDash": [],
+            "textAlign": 'left',
+            "textBaseline": 'middle',
+            "shadowBlur": 0,
+            "shadowColor": "black"
+        };
+        if (type == 'special')
+            return special;
+        else if (type == 'init')
+            return init;
+        else
+            return __assign(__assign({}, special), init);
+    }
+
     var Painter = (function () {
         function Painter(canvas, opts, region, isPainter, scaleSize) {
             if (opts === void 0) { opts = {}; }
             if (isPainter === void 0) { isPainter = false; }
             this.__region = null;
             this.__onlyRegion = false;
-            this.__specialConfig = {
-                "fontSize": 16,
-                "fontFamily": "sans-serif",
-                "fontWeight": 400,
-                "fontStyle": "normal",
-                "arcStartCap": 'butt',
-                "arcEndCap": 'butt'
-            };
-            this.__initConfig = {
-                "fillStyle": 'black',
-                "strokeStyle": 'black',
-                "lineWidth": 1,
-                "textAlign": 'left',
-                "textBaseline": 'middle',
-                "lineDash": [],
-                "shadowBlur": 0,
-                "shadowColor": "black"
-            };
+            this.__onlyView = false;
+            this.__specialConfig = defaultFactory("special");
+            this.__initConfig = defaultFactory("init");
             this.painter = canvas.getContext("2d", opts);
             this.__region = region;
             this.__isPainter = isPainter;
@@ -1116,7 +1183,7 @@
             this.painter.textAlign = 'left';
         }
         Painter.prototype.useConfig = function (key, value) {
-            if (this.__region) {
+            if (this.__region && !this.__onlyView) {
                 if (['fillStyle', 'strokeStyle', 'shadowBlur', 'shadowColor'].indexOf(key) < 0) {
                     this.__region.useConfig(key, value);
                 }
@@ -1143,7 +1210,7 @@
         };
         Painter.prototype.fillText = function (text, x, y, deg) {
             if (deg === void 0) { deg = 0; }
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fillText(text, x, y, deg);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1154,7 +1221,7 @@
         };
         Painter.prototype.strokeText = function (text, x, y, deg) {
             if (deg === void 0) { deg = 0; }
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.strokeText(text, x, y, deg);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1165,7 +1232,7 @@
         };
         Painter.prototype.fullText = function (text, x, y, deg) {
             if (deg === void 0) { deg = 0; }
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fullText(text, x, y, deg);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1181,7 +1248,7 @@
             if (lineHeight === void 0) { lineHeight = 1.2; }
             if (deg === void 0) { deg = 0; }
             var h = 0;
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 h = this.__region.fillTexts(contents, x, y, width, lineHeight);
             if (this.__isPainter && this.__onlyRegion)
                 return h;
@@ -1198,7 +1265,7 @@
             if (lineHeight === void 0) { lineHeight = 1.2; }
             if (deg === void 0) { deg = 0; }
             var h = 0;
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 h = this.__region.fillTexts(contents, x, y, width, lineHeight);
             if (this.__isPainter && this.__onlyRegion)
                 return h;
@@ -1215,7 +1282,7 @@
             if (lineHeight === void 0) { lineHeight = 1.2; }
             if (deg === void 0) { deg = 0; }
             var h = 0;
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 h = this.__region.fillTexts(contents, x, y, width, lineHeight);
             if (this.__isPainter && this.__onlyRegion)
                 return h;
@@ -1229,7 +1296,7 @@
             return height;
         };
         Painter.prototype.beginPath = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.beginPath();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1237,7 +1304,7 @@
             return this;
         };
         Painter.prototype.closePath = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.closePath();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1245,7 +1312,7 @@
             return this;
         };
         Painter.prototype.moveTo = function (x, y) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.moveTo(x, y);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1253,7 +1320,7 @@
             return this;
         };
         Painter.prototype.lineTo = function (x, y) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.lineTo(x, y);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1261,7 +1328,7 @@
             return this;
         };
         Painter.prototype.arc = function (x, y, r, beginDeg, deg) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.arc(x, y, r, beginDeg, deg);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1269,7 +1336,7 @@
             return this;
         };
         Painter.prototype.fill = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fill();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1277,7 +1344,7 @@
             return this;
         };
         Painter.prototype.stroke = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.stroke();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1285,7 +1352,7 @@
             return this;
         };
         Painter.prototype.full = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.full();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1294,7 +1361,7 @@
             return this;
         };
         Painter.prototype.save = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.save();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1302,7 +1369,7 @@
             return this;
         };
         Painter.prototype.restore = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.restore();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1310,7 +1377,7 @@
             return this;
         };
         Painter.prototype.clip = function () {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.clip();
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1318,7 +1385,7 @@
             return this;
         };
         Painter.prototype.quadraticCurveTo = function (cpx, cpy, x, y) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.quadraticCurveTo(cpx, cpy, x, y);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1326,7 +1393,7 @@
             return this;
         };
         Painter.prototype.bezierCurveTo = function (cp1x, cp1y, cp2x, cp2y, x, y) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1334,7 +1401,7 @@
             return this;
         };
         Painter.prototype.clearRect = function (x, y, w, h) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.clearRect(x, y, w, h);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1342,7 +1409,7 @@
             return this;
         };
         Painter.prototype.fillArc = function (cx, cy, r1, r2, beginDeg, deg) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fillArc(cx, cy, r1, r2, beginDeg, deg);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1350,7 +1417,7 @@
             return this;
         };
         Painter.prototype.strokeArc = function (cx, cy, r1, r2, beginDeg, deg) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.strokeArc(cx, cy, r1, r2, beginDeg, deg);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1358,7 +1425,7 @@
             return this;
         };
         Painter.prototype.fullArc = function (cx, cy, r1, r2, beginDeg, deg) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fullArc(cx, cy, r1, r2, beginDeg, deg);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1368,7 +1435,7 @@
             return this;
         };
         Painter.prototype.fillCircle = function (cx, cy, r) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fillCircle(cx, cy, r);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1376,7 +1443,7 @@
             return this;
         };
         Painter.prototype.strokeCircle = function (cx, cy, r) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.strokeCircle(cx, cy, r);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1384,7 +1451,7 @@
             return this;
         };
         Painter.prototype.fullCircle = function (cx, cy, r) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fullCircle(cx, cy, r);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1394,7 +1461,7 @@
             return this;
         };
         Painter.prototype.fillRect = function (x, y, width, height) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fillRect(x, y, width, height);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1402,7 +1469,7 @@
             return this;
         };
         Painter.prototype.strokeRect = function (x, y, width, height) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.strokeRect(x, y, width, height);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1410,7 +1477,7 @@
             return this;
         };
         Painter.prototype.fullRect = function (x, y, width, height) {
-            if (this.__region)
+            if (this.__region && !this.__onlyView)
                 this.__region.fullRect(x, y, width, height);
             if (this.__isPainter && this.__onlyRegion)
                 return this;
@@ -1426,7 +1493,7 @@
             var _this = this;
             if (isImage === void 0) { isImage = false; }
             return new Promise(function (resolve) {
-                if (_this.__region) {
+                if (_this.__region && !_this.__onlyView) {
                     _this.__region.fillRect(x, y, w, h);
                 }
                 if (_this.__isPainter && _this.__onlyRegion) {
@@ -1436,16 +1503,41 @@
                 if (typeof img == 'string' && !isImage) {
                     var imgInstance_1 = new Image();
                     imgInstance_1.onload = function () {
-                        _this.painter.drawImage(imgInstance_1, 0, 0, imgInstance_1.width, imgInstance_1.height, x, y, w, h);
+                        _this.painter.drawImage(imgInstance_1, x, y, w, h);
                         resolve({});
                     };
                     imgInstance_1.src = img;
                 }
                 else {
-                    _this.painter.drawImage(img, 0, 0, w, h, x, y, w, h);
+                    _this.painter.drawImage(img, x, y, w, h);
                     resolve({});
                 }
             });
+        };
+        Painter.prototype.install = function (methods) {
+            var _this = this;
+            var _loop_1 = function (key) {
+                if (key in this_1) {
+                    throw new Error("VISLite Canvas:Method already exists and cannot be overwritten.");
+                }
+                else {
+                    this_1[key] = function () {
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i] = arguments[_i];
+                        }
+                        var value = methods[key].apply(_this, args);
+                        if (value != void 0)
+                            return value;
+                        return _this;
+                    };
+                }
+            };
+            var this_1 = this;
+            for (var key in methods) {
+                _loop_1(key);
+            }
+            return this;
         };
         return Painter;
     }());
@@ -1468,13 +1560,13 @@
         };
     }
 
-    var enhanceGradient = function (gradient) {
+    var enhanceGradient = function (gradient, calcStop) {
         var enhanceGradient = {
             "value": function () {
                 return gradient;
             },
             "setColor": function (stop, color) {
-                gradient.addColorStop(stop, color);
+                gradient.addColorStop(calcStop ? calcStop(stop) : stop, color);
                 return enhanceGradient;
             }
         };
@@ -1487,6 +1579,12 @@
     var radialGradient = function (painter, cx, cy, r) {
         var gradient = painter.createRadialGradient(cx, cy, 0, cx, cy, r);
         return enhanceGradient(gradient);
+    };
+    var conicGradient = function (painter, cx, cy, startDeg, deg) {
+        var gradient = painter.createConicGradient(startDeg, cx, cy);
+        return enhanceGradient(gradient, deg ? function (stop) {
+            return deg / (Math.PI * 2) * stop;
+        } : undefined);
     };
 
     var Canvas$1 = (function (_super) {
@@ -1510,8 +1608,16 @@
             }
             return this;
         };
+        Canvas.prototype.reset = function () {
+            this.config(defaultFactory());
+            return this;
+        };
         Canvas.prototype.onlyRegion = function (flag) {
             this.__onlyRegion = flag;
+            return this;
+        };
+        Canvas.prototype.onlyView = function (flag) {
+            this.__onlyView = flag;
             return this;
         };
         Canvas.prototype.setRegion = function (regionName) {
@@ -1591,6 +1697,9 @@
         Canvas.prototype.createRadialGradient = function (cx, cy, r) {
             return radialGradient(this.painter, cx, cy, r);
         };
+        Canvas.prototype.createConicGradient = function (cx, cy, beginDeg, deg) {
+            return conicGradient(this.painter, cx, cy, beginDeg, deg);
+        };
         Canvas.prototype.getColor = function (x, y) {
             x *= this.__scaleSize;
             y *= this.__scaleSize;
@@ -1608,11 +1717,47 @@
         return Canvas;
     }(Painter));
 
-    function mergeOption (option, defaultOption) {
-        for (var key in option) {
-            defaultOption[key] = option[key];
+    var toString = Object.prototype.toString;
+    function getType(value) {
+        if (value == null) {
+            return value === undefined ? '[object Undefined]' : '[object Null]';
+        }
+        return toString.call(value);
+    }
+    function isPlainObject(value) {
+        if (value === null || typeof value !== 'object' || getType(value) != '[object Object]') {
+            return false;
+        }
+        if (Object.getPrototypeOf(value) === null) {
+            return true;
+        }
+        var proto = value;
+        while (Object.getPrototypeOf(proto) !== null) {
+            proto = Object.getPrototypeOf(proto);
+        }
+        return Object.getPrototypeOf(value) === proto;
+    }
+
+    function initOption(setOption, defaultOption) {
+        for (var key in setOption) {
+            defaultOption[key] = setOption[key];
         }
         return defaultOption;
+    }
+    function mergeOption(oldOption, newOption) {
+        (function doit(oldOption, newOption) {
+            for (var key in newOption) {
+                var value = newOption[key];
+                if (isPlainObject(value)) {
+                    if (!oldOption[key])
+                        oldOption[key] = {};
+                    doit(oldOption[key], newOption[key]);
+                }
+                else {
+                    oldOption[key] = value;
+                }
+            }
+        })(oldOption, newOption);
     }
 
     var Canvas = (function (_super) {
@@ -1625,7 +1770,7 @@
             if (!el) {
                 throw new Error("VISLite Canvas:The mount point requires an HTMLElement type but encountered null.");
             }
-            option = mergeOption(option, {
+            option = initOption(option, {
                 region: true,
                 willReadFrequently: false
             });
@@ -1660,6 +1805,7 @@
                 willReadFrequently: option.willReadFrequently,
             }, 2) || this;
             _this.__canvas = ViewCanvas;
+            _this.__el = el;
             _this.painter.scale(2, 2);
             return _this;
         }
@@ -1668,6 +1814,15 @@
             return new Promise(function (resolve) {
                 resolve(_this.__canvas.toDataURL());
             });
+        };
+        Canvas.prototype.bind = function (eventName, callback) {
+            var _this = this;
+            this.__el.addEventListener(eventName, function (event) {
+                _this.getRegion(event.offsetX, event.offsetY).then(function (regionName) {
+                    callback(regionName, event.offsetX, event.offsetY);
+                });
+            });
+            return this;
         };
         return Canvas;
     }(Canvas$1));
@@ -1917,47 +2072,54 @@
         return Mercator;
     }());
 
-    function throttle (callback, option) {
-        if (option === void 0) { option = {}; }
-        option = mergeOption(option, {
+    function throttle(callback, _option) {
+
+        // 缺省值
+        var option = {
             time: 200,
             keep: false,
             opportunity: "end"
-        });
-        var hadInterval = false;
-        var hadClick = false;
-        var oneClick = false;
-        var arg;
+        };
+
+        // 校对
+        if (_option) {
+            for (var key in _option) {
+                option[key] = _option[key];
+            }
+        }
+
+        var hadInterval = false, hadClick = false, oneClick = false, arg;
         return function () {
-            var _this = this;
+            const _this = this;
             arg = arguments;
+
+            // 如果前置任务都完成了
             if (!hadInterval) {
                 if (option.opportunity != 'end') {
                     callback.apply(_this, arg);
                 }
                 hadInterval = true;
-                var interval_1 = setInterval(function () {
+
+                var interval = setInterval(() => {
                     if (hadClick) {
                         if (!option.keep) {
                             callback.apply(_this, arg);
                         }
-                    }
-                    else {
+                    } else {
                         if (option.opportunity != 'begin') {
-                            if (oneClick || option.opportunity == 'end')
-                                callback.apply(_this, arg);
+                            if (oneClick || option.opportunity == 'end') callback.apply(_this, arg);
                         }
                         hadInterval = false;
                         oneClick = false;
-                        clearInterval(interval_1);
+                        clearInterval(interval);
                     }
                     hadClick = false;
                 }, option.time);
-            }
-            else {
+            } else {
                 hadClick = true;
                 oneClick = true;
             }
+
         };
     }
 
@@ -2087,7 +2249,7 @@
         function Tree(config) {
             if (config === void 0) { config = {}; }
             this.name = 'Tree';
-            this.__config = mergeOption(config, {
+            this.__config = initOption(config, {
                 root: function (initTree) { return initTree; },
                 children: function (parentTree) { return parentTree.children; },
                 id: function (treedata) { return treedata.name; }
@@ -2121,7 +2283,7 @@
             return _this;
         }
         TreeLayout.prototype.setOption = function (option) {
-            mergeOption(option, this.__option);
+            initOption(option, this.__option);
             return this;
         };
         TreeLayout.prototype.use = function (initTree, noOpens) {
@@ -2273,7 +2435,10 @@
         Eoap: Eoap,
         Mercator: Mercator,
         throttle: throttle,
-        TreeLayout: TreeLayout
+        assemble: assemble,
+        TreeLayout: TreeLayout,
+        initOption: initOption,
+        mergeOption: mergeOption
     };
 
     return index;

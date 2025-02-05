@@ -78,14 +78,28 @@ ctrlapp.register.controller('IndexController', ['$scope', '$fetch', '$url', '$up
 
                 // 视频
                 if (/^video/.test(item.type)) {
-
-                    console.log($scope.currentPath + item.name)
                     $scope.showFileType = true;
                     $scope.videoSrc = "/" + window.systemInfo.data.folder + "/" + $scope.currentPath + item.name;
                 }
 
+                // 文本
+                else if (/^text/.test(item.type) || ['application/json', 'application/javascript'].indexOf(item.type) > -1) {
+                    $fetch.get("/handler/readPlainFile?fullPath=" + $scope.currentPath + item.name).then(function (res) {
+                        $scope.showFileType = true;
+                        $scope.plainContent = res.msg;
+                        $scope.$digest();
+                    });
+                }
+
+                // 图片
+                else if (/^image/.test(item.type)) {
+                    $scope.showFileType = true;
+                    $scope.imgSrc = "/" + window.systemInfo.data.folder + "/" + $scope.currentPath + item.name;
+                }
+
                 // 否则还没有支持
                 else {
+                    // console.log(item)
                     alert("当前类型文件打开方式未支持！");
                 }
             }
@@ -105,6 +119,8 @@ ctrlapp.register.controller('IndexController', ['$scope', '$fetch', '$url', '$up
     $scope.hiddenShowfile = function () {
         $scope.showFileType = false;
         $scope.videoSrc = false;
+        $scope.plainContent = "";
+        $scope.imgSrc = false;
     };
 
     $scope.doExit = function () {

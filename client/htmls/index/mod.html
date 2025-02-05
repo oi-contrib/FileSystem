@@ -17,7 +17,7 @@
         </div>
     </div>
     <div class="filelist">
-        <table>
+        <table ng-if="currentPath != './' || fileList.length>0">
             <thead>
                 <tr>
                     <th>
@@ -32,19 +32,15 @@
                     <th>
                         大小
                     </th>
-                    <th>
-                        操作
-                    </th>
                 </tr>
             </thead>
             <tbody>
-                <tr ng-dblclick="openBtn()" class="folder">
+                <tr ng-if="currentPath != './'" ng-dblclick="openBtn()" class="folder">
                     <th class="name">..</th>
                     <th>-</th>
                     <th>
                         文件夹
                     </th>
-                    <th>-</th>
                     <th>-</th>
                 </tr>
                 <tr ng-repeat="item in fileList" draggable='true' ui-dragstart="doDragstart($event,item)"
@@ -55,10 +51,16 @@
                     <th>{{item.mtime}}</th>
                     <th>{{item.isDirectory?'文件夹':item.type}}</th>
                     <th>{{item.size||"-"}}</th>
-                    <th>-</th>
                 </tr>
             </tbody>
         </table>
+        <div class="blank" ng-if="fileList.length<=0">
+            <h2 class="title">列表为空</h2>
+            <div class="tips">
+                你可以拖拽文件或文件夹到这里，或直接选择文件夹上传～
+            </div>
+            <label class="file" for="selectFolder">选择文件夹</label>
+        </div>
     </div>
 
     <!-- 底部操作按钮 -->
@@ -68,7 +70,7 @@
         <label class="button" for="selectFile">上传文件</label>
         <label class="button" for="selectFolder">上传文件夹</label>
         <button class="button" ng-click="doPaste()">粘贴</button>
-        <button class="button" ng-click="doExit()">退出</button>
+        <button class="button exit" ng-click="doExit()">退出</button>
     </div>
 
     <!-- 辅助元素 -->
@@ -110,7 +112,7 @@
             <li ng-click="doCut()">
                 剪切
             </li>
-            <li ng-click="doDownload()">
+            <li ng-click="doDownload()" ng-if="rightmenu.type!='folder'">
                 下载到本地
             </li>
             <li ng-click="doZip()" ng-if="!rightmenu.isZip &&  rightmenu.type=='folder'">
@@ -142,11 +144,25 @@
     </div>
 
     <!-- 统一弹框 -->
+    <div ng-if="showFileType" class="showfile-mask"></div>
     <div ng-if="showFileType" class="showfile-view">
         <header>
             <h2>打开文件</h2>
             <div class="close" title="关闭" ng-click="hiddenShowfile()"></div>
-            <video ng-if="videoSrc" class="content" controls src="{{videoSrc}}" autoplay></video>
         </header>
+
+        <!-- 视频 -->
+        <video ng-if="videoSrc" class="content" controls src="{{videoSrc}}" autoplay></video>
+
+        <!-- 文本 -->
+        <div ng-if="plainContent" class="content plain">
+            <pre>{{plainContent}}</pre>
+        </div>
+
+        <!-- 图片 -->
+        <div ng-if="imgSrc" class="content img center">
+            <img src="{{imgSrc}}" />
+        </div>
+
     </div>
 </div>

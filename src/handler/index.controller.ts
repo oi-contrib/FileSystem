@@ -218,4 +218,26 @@ export class HandlerController {
         }
 
     }
+
+    // 读取文本
+    @Get('/readPlainFile')
+    readPlainFile(@Query() query: {
+        fullPath: string
+    }, @Request() req: any): any {
+        if (this.securityService.isLogin(req.header("cookie"))) {
+
+            return {
+                code: '000000',
+                msg: fs.readFileSync(join(contextPath, query.fullPath), {
+                    encoding: "utf8"
+                })
+            }
+
+        } else {
+            return Promise.resolve({
+                code: '-1',
+                msg: "登录失效"
+            })
+        }
+    }
 }
